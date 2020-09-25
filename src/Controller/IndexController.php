@@ -1,12 +1,13 @@
 <?php
+
 declare(strict_types = 1);
 
 namespace App\Controller;
 
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Panther\Client;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Panther\Client;
 
 class IndexController
 {
@@ -24,14 +25,52 @@ class IndexController
         $crawler = $client->waitFor('#nav-submenu-container');
 
         $output = [];
-
+        $exclude = ['Novedades', 'Ver marcas', 'Soy solidario', 'Ofertas'];
+        
         $crawler
-            ->filter('#nav-submenu-container > li > a')
-            ->each(function (Crawler $node) use (&$output) {
-                $output[] = [
-                    'text' => strip_tags($node->html()),
-                    'link' => $node->attr('href'),
-                ];
+            ->filter('#nav-submenu-container > li')
+            ->each(function (Crawler $node, $i) use (&$output, $exclude) {
+                if ($node->filter('a')->count() > 0) {
+                    $nodeLink = $node->filter('a');
+                    $text = trim(strip_tags($nodeLink->html()));
+
+                    if (!in_array($text, $exclude)) {
+                        $output[$i] = [
+                            'text' => $text,
+                            'link' => $nodeLink->attr('href')
+                        ];
+
+                        if ($node->children('ul')->count() > 0) {
+                            $node->children('ul > li')
+                                ->each(function (Crawler $node, $x) use (&$output, $exclude, $i) {
+                                    $nodeLink = $node->filter('a');
+                                    $text = trim(strip_tags($nodeLink->html()));
+
+                                    if (!in_array($text, $exclude)) {
+                                        $output[$i]['child'][$x] = [
+                                            'text' => $text,
+                                            'link' => $nodeLink->attr('href')
+                                        ];
+
+                                        if ($node->children('ul')->count() > 0) {
+                                            $node->children('ul > li')
+                                                ->each(function (Crawler $node) use (&$output, $exclude, $i, $x) {
+                                                    $nodeLink = $node->filter('a');
+                                                    $text = trim(strip_tags($nodeLink->html()));
+
+                                                    if (!in_array($text, $exclude)) {
+                                                        $output[$i]['child'][$x]['child'][] = [
+                                                            'text' => $text,
+                                                            'link' => $nodeLink->attr('href')
+                                                        ];
+                                                    }
+                                                });
+                                        }
+                                    }
+                                });
+                        }
+                    }
+                }
             });
 
         $client->quit();

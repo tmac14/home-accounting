@@ -18,6 +18,7 @@ endif
 # Global variables that we're using
 HOST_UID := $(shell id -u)
 HOST_GID := $(shell id -g)
+
 WARNING_HOST = @printf "\033[31mThis command cannot be run inside docker container!\033[39m\n"
 WARNING_DOCKER = @printf "\033[31mThis command must be run inside docker container!\nUse 'make bash' command to get shell inside container.\033[39m\n"
 
