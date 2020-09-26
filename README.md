@@ -26,7 +26,7 @@ Use your favorite IDE and get checkout from GitHub or just use following
 command
 
 ```bash
-git clone https://github.com/tarlepp/josecostas
+git clone https://github.com/tmac14/home-accounting
 ```
 
 ### 2. Start application
